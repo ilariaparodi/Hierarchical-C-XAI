@@ -1,0 +1,144 @@
+concepts = {
+    "feline": [
+        "fur",
+        "whiskers",
+        "paws",
+        "tail",
+        "pointed ears",
+        "feline face",
+        "visible eyes",
+        "striped or spotted pattern",
+        "compact body",
+        "feline claws"
+    ],
+
+    "bird": [
+        "beak",
+        "feathers",
+        "wings",
+        "tail feathers",
+        "bird claws",
+        "visible neck",
+        "perched posture",
+        "feather color pattern",
+        "lightweight body shape",
+        "folded wings"
+    ],
+
+    "fish": [
+        "fins",
+        "dorsal fin",
+        "tail fin",
+        "scales",
+        "streamlined body",
+        "elongated body",
+        "visible mouth",
+        "aquatic silhouette",
+        "reflective skin",
+        "lateral fin"
+    ],
+
+    "car": [
+        "windshield",
+        "headlights",
+        "side windows",
+        "doors",
+        "hood",
+        "roof",
+        "wheels",
+        "side mirrors",
+        "front grille",
+        "license plate area"
+    ],
+
+    "truck": [
+        "cargo area",
+        "large cabin",
+        "heavy-duty wheels",
+        "elevated chassis",
+        "extended body",
+        "loading platform",
+        "large front grille",
+        "oversized mirrors",
+        "box-shaped structure",
+        "high driving position"
+    ],
+
+    "bicycle": [
+        "handlebars",
+        "pedals",
+        "saddle",
+        "chain",
+        "spokes",
+        "frame triangle",
+        "front wheel",
+        "rear wheel",
+        "brake mechanism",
+        "front fork"
+    ],
+
+    "chair": [
+        "seat",
+        "backrest",
+        "legs",
+        "armrests",
+        "support frame",
+        "seat cushion",
+        "chair base",
+        "vertical supports",
+        "leg connections",
+        "sitting surface"
+    ],
+
+    "bottle": [
+        "neck",
+        "cap",
+        "cylindrical body",
+        "opening",
+        "label",
+        "transparent surface",
+        "bottle base",
+        "shoulder",
+        "screw top",
+        "elongated container shape"
+    ],
+
+    "clock": [
+        "clock face",
+        "numbers",
+        "hands",
+        "circular frame",
+        "tick marks",
+        "outer casing",
+        "dial",
+        "time markings",
+        "digital display",
+        "bezel"
+    ],
+
+    "flower": [
+        "petals",
+        "blossom",
+        "stem",
+        "leaves",
+        "flower center",
+        "petal arrangement",
+        "flower bud",
+        "radial symmetry",
+        "colorful petals",
+        "floral cluster"
+    ],
+
+    "fruit": [
+        "peel",
+        "outer skin",
+        "stem attachment",
+        "surface texture",
+        "natural color pattern",
+        "rounded shape",
+        "elongated shape",
+        "glossy surface",
+        "fruit contour",
+        "fleshy appearance"
+    ]
+}
