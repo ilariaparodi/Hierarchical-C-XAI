@@ -1,12 +1,36 @@
 import os
 import json
 
-with open("concepts.json", "w") as f:
-    json.dump(concepts, f, indent=4)
+# load concepts
+with open("dataset_creation/concepts.json", "r") as f:
+    concepts = json.load(f)
 
-DATASET_ROOT = "image_subset"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATASET_ROOT = os.path.join(BASE_DIR, "image_subset")
 
-# build concept vocabulary
+# hierarchical mapping from subclasses to coarse classes
+coarse_map = {
+    # Animal
+    "feline": "animal",
+    "bird": "animal",
+    "fish": "animal",
+
+    # Vehicle
+    "car": "vehicle",
+    "truck": "vehicle",
+    "bicycle": "vehicle",
+
+    # Object
+    "chair": "object",
+    "bottle": "object",
+    "clock": "object",
+
+    # Plant
+    "flower": "plant",
+    "fruit": "plant"
+}
+
+# build a sorted list of all unique concepts across all subclasses
 all_concepts = sorted(
     list(
         set(
@@ -17,13 +41,12 @@ all_concepts = sorted(
     )
 )
 
-# print(f"Total concepts: {len(all_concepts)}")
+print(f"Total concepts: {len(all_concepts)}")
 
-# save concept vocabulary
 with open("concept_vocabulary.json", "w") as f:
     json.dump(all_concepts, f, indent=4)
 
-# build concept vectors
+# build concept vectors for each subclass
 concept_vectors = {}
 
 for subclass, subclass_concepts in concepts.items():
@@ -39,46 +62,80 @@ for subclass, subclass_concepts in concepts.items():
 
     concept_vectors[subclass] = vector
 
-# create image annotations
-annotations = []
-
+# build mappings from class names to IDs
 class_to_id = {
     subclass: idx
     for idx, subclass in enumerate(sorted(concepts.keys()))
 }
 
-for subclass in os.listdir(DATASET_ROOT):
+coarse_to_id = {
+    coarse: idx
+    for idx, coarse in enumerate(
+        sorted(set(coarse_map.values()))
+    )
+}
 
-    subclass_dir = os.path.join(DATASET_ROOT, subclass)
+# create annotations for each image in the dataset
+annotations = []
 
-    if not os.path.isdir(subclass_dir):
+for coarse_class in os.listdir(DATASET_ROOT):
+
+    coarse_dir = os.path.join(
+        DATASET_ROOT,
+        coarse_class
+    )
+
+    if not os.path.isdir(coarse_dir):
         continue
 
-    if subclass not in concept_vectors:
-        continue
+    for subclass in os.listdir(coarse_dir):
 
-    for filename in os.listdir(subclass_dir):
-
-        if not filename.lower().endswith(
-            (".jpg", ".jpeg", ".png")
-        ):
-            continue
-
-        relative_path = os.path.join(
-            subclass,
-            filename
+        subclass_dir = os.path.join(
+            coarse_dir,
+            subclass
         )
 
-        annotations.append({
-            "image": relative_path,
-            "class_name": subclass,
-            "class_id": class_to_id[subclass],
-            "concepts": concept_vectors[subclass]
-        })
+        if not os.path.isdir(subclass_dir):
+            continue
 
-# save 
+        if subclass not in concept_vectors:
+            continue
+
+        for filename in os.listdir(subclass_dir):
+
+            if not filename.lower().endswith(
+                (".jpg", ".jpeg", ".png")
+            ):
+                continue
+
+            relative_path = os.path.join(
+                coarse_class,
+                subclass,
+                filename
+            )
+
+            annotations.append({
+
+                "image": relative_path,
+
+                "coarse_class": coarse_class,
+                "coarse_id": coarse_to_id[coarse_class],
+
+                "class_name": subclass,
+                "class_id": class_to_id[subclass],
+
+                "active_concepts": concepts[subclass],
+                "concepts": concept_vectors[subclass]
+            })
+
+# save annotations to JSON file
 with open("annotations.json", "w") as f:
     json.dump(annotations, f, indent=4)
+
+
+# =====================================================
+# SUMMARY
+# =====================================================
 
 print(f"\nSaved {len(annotations)} image annotations")
 print("Saved concept_vocabulary.json")
