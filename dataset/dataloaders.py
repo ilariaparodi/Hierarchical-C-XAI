@@ -1,13 +1,19 @@
 import os
+import sys
 
 from torchvision import transforms
 
 from torch.utils.data import DataLoader
 
+# Add the repository root to sys.path
+repo_name = 'Hierarchical-C-XAI'
+repo_root = os.path.join('/content', repo_name)
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+
 from dataset.dataset import HierarchicalDataset
 
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = repo_root
 
 transform = transforms.Compose([
     transforms.Resize((224,224)),
