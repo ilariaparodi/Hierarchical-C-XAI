@@ -1,11 +1,14 @@
+# create annotations for the image subset dataset
 import os
 import json
 
-# load concepts
-with open("dataset_creation/concepts.json", "r") as f:
+# define paths and load concepts
+BASE_DIR = '/content/Hierarchical-C-XAI'
+CONCEPTS_PATH = os.path.join(BASE_DIR, "dataset_creation", "concepts.json")
+
+with open(CONCEPTS_PATH, "r") as f:
     concepts = json.load(f)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATASET_ROOT = os.path.join(BASE_DIR, "image_subset")
 
 # hierarchical mapping from subclasses to coarse classes
@@ -50,16 +53,12 @@ with open("concept_vocabulary.json", "w") as f:
 concept_vectors = {}
 
 for subclass, subclass_concepts in concepts.items():
-
     vector = []
-
     for concept in all_concepts:
-
         if concept in subclass_concepts:
             vector.append(1)
         else:
             vector.append(0)
-
     concept_vectors[subclass] = vector
 
 # build mappings from class names to IDs
@@ -79,7 +78,6 @@ coarse_to_id = {
 annotations = []
 
 for coarse_class in os.listdir(DATASET_ROOT):
-
     coarse_dir = os.path.join(
         DATASET_ROOT,
         coarse_class
@@ -89,7 +87,6 @@ for coarse_class in os.listdir(DATASET_ROOT):
         continue
 
     for subclass in os.listdir(coarse_dir):
-
         subclass_dir = os.path.join(
             coarse_dir,
             subclass
@@ -102,7 +99,6 @@ for coarse_class in os.listdir(DATASET_ROOT):
             continue
 
         for filename in os.listdir(subclass_dir):
-
             if not filename.lower().endswith(
                 (".jpg", ".jpeg", ".png")
             ):
@@ -115,7 +111,6 @@ for coarse_class in os.listdir(DATASET_ROOT):
             )
 
             annotations.append({
-
                 "image": relative_path,
 
                 "coarse_class": coarse_class,
@@ -131,11 +126,6 @@ for coarse_class in os.listdir(DATASET_ROOT):
 # save annotations to JSON file
 with open("annotations.json", "w") as f:
     json.dump(annotations, f, indent=4)
-
-
-# =====================================================
-# SUMMARY
-# =====================================================
 
 print(f"\nSaved {len(annotations)} image annotations")
 print("Saved concept_vocabulary.json")

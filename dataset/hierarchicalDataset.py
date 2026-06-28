@@ -6,13 +6,7 @@ from torch.utils.data import Dataset
 
 class HierarchicalDataset(Dataset):
 
-    def __init__(
-        self,
-        annotation_file,
-        image_root,
-        transform=None
-    ):
-
+    def __init__(self, annotation_file, image_root, transform=None):
         with open(annotation_file) as f:
             self.samples = json.load(f)
 
@@ -24,10 +18,7 @@ class HierarchicalDataset(Dataset):
 
     def __getitem__(self, idx):
         sample = self.samples[idx]
-
-        # Replace backslashes with forward slashes for compatibility
         image_path = sample["image"].replace('\\', '/')
-
         image = Image.open(os.path.join(self.image_root,image_path)).convert("RGB")
 
         if self.transform:

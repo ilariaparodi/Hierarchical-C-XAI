@@ -1,27 +1,21 @@
+# create dataloaders for the hierarchical dataset
 import os
 import sys
-
 from torchvision import transforms
-
 from torch.utils.data import DataLoader
 
-# Add the repository root to sys.path
-repo_name = 'Hierarchical-C-XAI'
-repo_root = os.path.join('/content', repo_name)
-if repo_root not in sys.path:
-    sys.path.insert(0, repo_root)
+from dataset.hierarchicalDataset import HierarchicalDataset
 
-from dataset.dataset import HierarchicalDataset
+BASE_DIR = '/content/Hierarchical-C-XAI'
 
-BASE_DIR = repo_root
-
+# define transformations for the images
 transform = transforms.Compose([
     transforms.Resize((224,224)),
     transforms.ToTensor(),
 ])
 
+# create datasets for train, validation, and test splits
 train_dataset = HierarchicalDataset(
-
     annotation_file=os.path.join(
         BASE_DIR,
         "dataset",
@@ -34,11 +28,9 @@ train_dataset = HierarchicalDataset(
     ),
 
     transform=transform
-
 )
 
 val_dataset = HierarchicalDataset(
-
     annotation_file=os.path.join(
         BASE_DIR,
         "dataset",
@@ -51,11 +43,9 @@ val_dataset = HierarchicalDataset(
     ),
 
     transform=transform
-
 )
 
 test_dataset = HierarchicalDataset(
-
     annotation_file=os.path.join(
         BASE_DIR,
         "dataset",
@@ -68,7 +58,6 @@ test_dataset = HierarchicalDataset(
     ),
 
     transform=transform
-
 )
 
 train_loader = DataLoader(

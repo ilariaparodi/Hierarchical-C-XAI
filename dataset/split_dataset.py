@@ -1,5 +1,4 @@
 # split the dataset into train, validation, and test sets
-
 import random
 from collections import Counter, defaultdict
 import json
@@ -8,7 +7,7 @@ import os
 random.seed(42)
 
 BASE_DIR = '/content/Hierarchical-C-XAI'
-ANNOTATIONS = os.path.join(BASE_DIR, "annotations.json") # Corrected path
+ANNOTATIONS = os.path.join(BASE_DIR, "annotations.json")
 OUTPUT_DIR = os.path.join(BASE_DIR, "dataset")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
