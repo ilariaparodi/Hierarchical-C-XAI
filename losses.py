@@ -1,9 +1,3 @@
-# define loss functions
-# !!!
-# scegliere valore di lambda
-# valutare se lasciare nn.functional.binary_cross_entropy_with_logits o se usare nn.functional.binary_cross_entropy
-# a seconda se il CBM produce logits o già probabilita' 
-# !!!
 import torch
 import torch.nn.functional as F
 
@@ -38,4 +32,8 @@ def total_loss(class_predictions, class_targets, coarse_predictions, coarse_targ
 
     l_concept = concept_loss(coarse_predictions, coarse_targets, fine_predictions, fine_targets, lambda_weight)
 
-    return l_class + l_concept
+    return {
+        "total": l_class + l_concept,
+        "classification": l_class,
+        "concept": l_concept
+    }

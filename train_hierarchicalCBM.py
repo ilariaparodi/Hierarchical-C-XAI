@@ -25,7 +25,7 @@ def compute_loss(model, batch, device):
     # forward pass
     outputs = model(images)
     # compute the total loss
-    loss = total_loss(
+    losses = total_loss(
         class_predictions=outputs["class"],
         class_targets=final_class,
 
@@ -36,7 +36,8 @@ def compute_loss(model, batch, device):
         fine_targets=fine_concepts
     )
 
-    return loss, outputs, final_class
+    loss = losses["total"]
+    return loss, losses, outputs, final_class
 
 def train_one_epoch(model, loader, optimizer, device):
 
@@ -49,7 +50,7 @@ def train_one_epoch(model, loader, optimizer, device):
 
         optimizer.zero_grad()
 
-        loss, _, _ = compute_loss(model, batch, device)
+        loss, losses, _, _ = compute_loss(model, batch, device)
         loss.backward()
 
         optimizer.step()
@@ -72,21 +73,21 @@ def evaluate(model, loader, device):
     # iterate over the validation data
     for batch in loader:
 
-        loss, outputs, labels = compute_loss(model, batch, device)
+        loss, losses, outputs, labels = compute_loss(model, batch, device)
         pred = outputs["class"].argmax(dim=1)
         correct += (pred == labels).sum().item()
         running_loss += loss.item() * labels.size(0)
         total += labels.size(0)
 
     return {
-        "loss": running_loss / total,
-        "accuracy": correct / total
+        "loss": running_loss / max(1, total),
+        "accuracy": correct / max(1, total)
     }
 
 def main():
     print(f"Device: {DEVICE}")
     # build the model and optimizer
-    model = build_resnet50_hierarchical(pretrained=True).to(DEVICE)
+    model = build_resnet50_hierarchical(num_classes=NUM_CLASSES, num_fine=NUM_FINE, num_coarse=NUM_COARSE, pretrained=True, freeze_backbone=False).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
     best_accuracy = 0.0
@@ -102,14 +103,11 @@ def main():
             torch.save(model.state_dict(), "hierarchical_cbm_best.pt")
             print(f"New best model saved with accuracy: {best_accuracy:.4f}")
         
-    model.load_state_dict(
-    torch.load(
-        "hierarchical_cbm_best.pt",
-        map_location=DEVICE
-    )
-)
+    model.load_state_dict(torch.load("hierarchical_cbm_best.pt", map_location=DEVICE))
+    test_metrics = evaluate(model, test_loader, DEVICE)
 
-test_metrics = evaluate(model, test_loader, DEVICE)
+    print("\n--- TEST ---")
+    print(test_metrics)
 
-print("\n--- TEST ---")
-print(test_metrics)
+if __name__ == "__main__":
+    main()

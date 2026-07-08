@@ -5,7 +5,7 @@ from torchvision.models import ResNet50_Weights
 
 class ResNetHierarchical(nn.Module):
 
-    def __init__(self, num_classes, pretrained=True, freeze_backbone=False):
+    def __init__(self, num_classes, num_fine=110, num_coarse=11, pretrained=True, freeze_backbone=False):
         super().__init__()
         # load weights
         weights = ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
@@ -22,19 +22,19 @@ class ResNetHierarchical(nn.Module):
         self.fine_head = nn.Sequential(
             nn.Linear(in_features, 512),
             nn.ReLU(),
-            nn.Linear(512, 110)
+            nn.Linear(512, num_fine)
         )  
 
         # fully-connected layer for coarse-grained classification (dim: 11)
         self.coarse_head = nn.Sequential(
-            nn.Linear(110, 64),
+            nn.Linear(num_fine, 64),
             nn.ReLU(),
-            nn.Linear(64, 11)
+            nn.Linear(64, num_coarse)
         )
 
         # fully-connected layer for final classification (dim: 4)
         self.classifier_head = nn.Sequential(
-            nn.Linear(11, 16),
+            nn.Linear(num_coarse, 16),
             nn.ReLU(),
             nn.Linear(16, num_classes)
         ) 
@@ -50,9 +50,11 @@ class ResNetHierarchical(nn.Module):
             "class": class_logits
         }
 
-def build_resnet50_hierarchical(num_classes, pretrained=True, freeze_backbone=False):
+def build_resnet50_hierarchical(num_classes, num_fine=110, num_coarse=11, pretrained=True, freeze_backbone=False):
     return ResNetHierarchical(
         num_classes=num_classes,
+        num_fine=num_fine,
+        num_coarse=num_coarse,
         pretrained=pretrained,
         freeze_backbone=freeze_backbone,
     )
