@@ -24,9 +24,8 @@ class HierarchicalDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        coarse = torch.tensor(sample["coarse_id"])
-        fine = torch.tensor(sample["class_id"])
+        final_class = torch.tensor(sample["final_class_id"], dtype=torch.long)
+        coarse_concept = torch.tensor(sample["coarse_concept_id"], dtype=torch.long)
+        fine_concept = torch.tensor(sample["fine_concept_id"], dtype=torch.float32)
 
-        concepts = torch.tensor(sample["concepts"],dtype=torch.float32)
-
-        return image, coarse, fine, concepts
+        return image, final_class, coarse_concept, fine_concept
