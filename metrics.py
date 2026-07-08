@@ -1,30 +1,36 @@
 # metrics used for evaluation
 import torch
 
-# top-1 accuracy: measures how often the top predicted label is the true label
-def top1_accuracy(logits, labels):
-    predictions = torch.argmax(logits, dim=1)
+# Accuracy: measures how well the model predicts the correct class label in a multi-class classification setting
+def accuracy(logits, labels):
+    predictions = logits.argmax(dim=1)
     return (predictions == labels).float().mean().item()
 
-# top-k accuracy: measures how often the true label is among the top k predicted labels
-def topk_accuracy(logits, labels, k=5):
-    _, topk = torch.topk(logits, k, dim=1)
-    correct = topk.eq(labels.view(-1, 1))
-    return correct.any(dim=1).float().mean().item()
+# Fine Concept Accuracy: measures how well the model predicts the correct fine concept labels in a multi-label classification setting
+def fine_concept_accuracy(logits, targets, threshold=0.5):
+    predictions = (torch.sigmoid(logits) >= threshold).float()
+    return (predictions == targets).float().mean().item()
 
-# concept accuracy: measures how well the model predicts the presence of concepts in a multi-label classification setting
-def concept_accuracy(logits, targets, threshold=0.5):
-    """
-    Computes binary concept accuracy.
-    """
-    predictions = torch.sigmoid(logits)
-    predictions = (predictions >= threshold).float()
-    correct = (predictions == targets).float()
-    return correct.mean().item()
+# Coarse Concept Accuracy: measures how well the model predicts the correct coarse concept labels in a multi-class classification setting
+def coarse_concept_accuracy(logits, labels):
+    predictions = logits.argmax(dim=1)
+    return (predictions == labels).float().mean().item()
 
-# misura se i coarse concept predetti sono coerenti con i fine concept
-def hierarchical_consistency():
-    """
-    Computes hierarchical consistency between coarse and fine concepts.
-    """
-    pass  
+# Semantic Error Distance: measures the semantic distance between predicted and true labels in a hierarchical classification setting
+def semantic_error_distance(predicted_coarse, predicted_class, true_coarse, true_class):
+
+    total = 0
+    n = len(true_class)
+
+    for pc, pf, tc, tf in zip(predicted_coarse, predicted_class, true_coarse, true_class):
+
+        if pf == tf:
+            total += 0
+
+        elif pc == tc:
+            total += 1
+
+        else:
+            total += 2
+
+    return total / n
