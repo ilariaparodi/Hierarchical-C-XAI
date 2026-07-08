@@ -8,7 +8,7 @@ def classification_loss(predictions, labels):
     return F.cross_entropy(predictions, labels)
 
 
-def concept_loss(coarse_predictions, coarse_targets, fine_predictions, fine_targets, lambda_weight=0.5):
+def concept_loss(coarse_predictions, coarse_targets, fine_predictions, fine_targets, lambda_weight=0.6):
     '''
     Hierarchical concept loss
     L_concept = λ * CE(coarse concepts) + (1-λ) * BCE(fine concepts)
