@@ -4,10 +4,10 @@ from dataloaders import train_loader, val_loader, test_loader
 from models.resnet_baseline import build_resnet50_baseline
 from losses import classification_loss
 
-NUM_CLASSES = 11
+NUM_CLASSES = 4
 EPOCHS = 20
 LR = 1e-3
-TOP_K = 3
+TOP_K = 2
 PRETRAINED = True
 FREEZE_BACKBONE = False
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
