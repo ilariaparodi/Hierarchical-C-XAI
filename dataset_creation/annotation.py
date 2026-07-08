@@ -11,8 +11,8 @@ with open(CONCEPTS_PATH, "r") as f:
 
 DATASET_ROOT = os.path.join(BASE_DIR, "image_subset")
 
-# hierarchical mapping from subclasses to coarse classes
-coarse_map = {
+# mapping from coarse semantic concepts to final classes
+final_class_map = {
     # Animal
     "feline": "animal",
     "bird": "animal",
@@ -33,94 +33,92 @@ coarse_map = {
     "fruit": "plant"
 }
 
-# build a sorted list of all unique concepts across all subclasses
-all_concepts = sorted(
+# build a sorted list of all unique fine concepts
+all_fine_concepts = sorted(
     list(
         set(
             concept
-            for subclass_concepts in concepts.values()
-            for concept in subclass_concepts
+            for fine_concepts in concepts.values()
+            for concept in fine_concepts
         )
     )
 )
 
-print(f"Total concepts: {len(all_concepts)}")
+print(f"Total fine concepts: {len(all_fine_concepts)}")
 
 with open("concept_vocabulary.json", "w") as f:
-    json.dump(all_concepts, f, indent=4)
+    json.dump(all_fine_concepts, f, indent=4)
 
-# build concept vectors for each subclass
-concept_vectors = {}
+# build binary vectors for fine concepts
+fine_concept_vectors = {}
 
-for subclass, subclass_concepts in concepts.items():
+for coarse_concept, fine_concepts in concepts.items():
     vector = []
-    for concept in all_concepts:
-        if concept in subclass_concepts:
-            vector.append(1)
-        else:
-            vector.append(0)
-    concept_vectors[subclass] = vector
+    for concept in all_fine_concepts:
+        vector.append(int(concept in fine_concepts))
 
-# build mappings from class names to IDs
-class_to_id = {
-    subclass: idx
-    for idx, subclass in enumerate(sorted(concepts.keys()))
+    fine_concept_vectors[coarse_concept] = vector
+
+# build mappings to integer IDs
+coarse_concept_to_id = {
+    concept: idx
+    for idx, concept in enumerate(sorted(concepts.keys()))
 }
 
-coarse_to_id = {
-    coarse: idx
-    for idx, coarse in enumerate(
-        sorted(set(coarse_map.values()))
+final_class_to_id = {
+    final_class: idx
+    for idx, final_class in enumerate(
+        sorted(set(final_class_map.values()))
     )
 }
 
 # create annotations for each image in the dataset
 annotations = []
 
-for coarse_class in os.listdir(DATASET_ROOT):
-    coarse_dir = os.path.join(
+for final_class in os.listdir(DATASET_ROOT):
+    final_class_dir = os.path.join(
         DATASET_ROOT,
-        coarse_class
+        final_class
     )
 
-    if not os.path.isdir(coarse_dir):
+    if not os.path.isdir(final_class_dir):
         continue
 
-    for subclass in os.listdir(coarse_dir):
-        subclass_dir = os.path.join(
-            coarse_dir,
-            subclass
+    for coarse_concept in os.listdir(final_class_dir):
+        coarse_concept_dir = os.path.join(
+            final_class_dir,
+            coarse_concept
         )
 
-        if not os.path.isdir(subclass_dir):
+        if not os.path.isdir(coarse_concept_dir):
             continue
 
-        if subclass not in concept_vectors:
+        if coarse_concept not in fine_concept_vectors:
             continue
 
-        for filename in os.listdir(subclass_dir):
+        for filename in os.listdir(coarse_concept_dir):
             if not filename.lower().endswith(
                 (".jpg", ".jpeg", ".png")
             ):
                 continue
 
             relative_path = os.path.join(
-                coarse_class,
-                subclass,
+                final_class,
+                coarse_concept,
                 filename
             )
 
             annotations.append({
                 "image": relative_path,
-
-                "coarse_class": coarse_class,
-                "coarse_id": coarse_to_id[coarse_class],
-
-                "class_name": subclass,
-                "class_id": class_to_id[subclass],
-
-                "active_concepts": concepts[subclass],
-                "concepts": concept_vectors[subclass]
+                # final prediction target
+                "final_class": final_class,
+                "final_class_id": final_class_to_id[final_class],
+                # intermediate semantic concept
+                "coarse_concept": coarse_concept,
+                "coarse_concept_id": coarse_concept_to_id[coarse_concept],
+                # fine concepts
+                "active_fine_concepts": concepts[coarse_concept],
+                "fine_concept_vector": fine_concept_vectors[coarse_concept]
             })
 
 # save annotations to JSON file

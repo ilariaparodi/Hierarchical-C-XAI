@@ -12,14 +12,14 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "dataset")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# group samples by class name
+# group samples by coarse semantic concept
 groups = defaultdict(list)
 
 with open(ANNOTATIONS) as f:
     annotations = json.load(f)
 
 for sample in annotations:
-    groups[sample["class_name"]].append(sample)
+    groups[sample["coarse_concept"]].append(sample)
 
 # split each group into train, val, and test sets (70% train, 20% val, 10% test)
 train = []
@@ -29,8 +29,8 @@ test = []
 for samples in groups.values():
     random.shuffle(samples)
     n = len(samples)
-    n_train = round(0.7 * n)
-    n_val = round(0.2 * n)
+    n_train = int(0.7 * n)
+    n_val = int(0.2 * n)
     # n_test = n - n_train - n_val
 
     train.extend(samples[:n_train])
