@@ -74,3 +74,6 @@ def get_dataloaders(batch_size=32, num_workers=2):
     )
 
     return train_loader, val_loader, test_loader
+
+
+train_loader, val_loader, test_loader = get_dataloaders()
