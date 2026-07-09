@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from dataset.dataloaders import train_loader, val_loader, test_loader
 from models.resnet_hierarchicalCBM import build_resnet50_hierarchical
 from losses import total_loss
-from metrics import accuracy, coarse_concept_accuracy, fine_concept_accuracy
+from metrics import accuracy, coarse_concept_accuracy, fine_concept_accuracy, fine_concept_f1, fine_concept_precision, fine_concept_recall
 import csv
 import os
 
@@ -82,6 +82,9 @@ def evaluate(model, loader, device):
     class_acc = 0.0
     coarse_acc = 0.0
     fine_acc = 0.0
+    fine_recall = 0.0
+    fine_precision = 0.0
+    fine_f1 = 0.0
     running_loss = 0.0
     
     # iterate over the validation data
@@ -95,6 +98,9 @@ def evaluate(model, loader, device):
         class_acc += accuracy(outputs["class"], final_class_targets) * bs
         coarse_acc += coarse_concept_accuracy(outputs["coarse"], coarse_targets) * bs
         fine_acc += fine_concept_accuracy(outputs["fine"], fine_targets) * bs
+        fine_recall += fine_concept_recall(outputs["fine"], fine_targets) * bs
+        fine_precision += fine_concept_precision(outputs["fine"], fine_targets) * bs
+        fine_f1 += fine_concept_f1(outputs["fine"], fine_targets) * bs
 
         running_loss += loss.item() * bs
         total += bs
@@ -104,6 +110,9 @@ def evaluate(model, loader, device):
         "class_acc": class_acc / total,
         "coarse_acc": coarse_acc / total,
         "fine_acc": fine_acc / total,
+        "fine_recall": fine_recall / total,
+        "fine_precision": fine_precision / total,
+        "fine_f1": fine_f1 / total,
     }
 
 def main():
@@ -118,6 +127,9 @@ def main():
             "class_acc",
             "coarse_acc",
             "fine_acc",
+            "fine_recall",
+            "fine_precision",
+            "fine_f1"
         ])
 
     # build the model and optimizer
@@ -130,6 +142,9 @@ def main():
     class_accs = []
     coarse_accs = []
     fine_accs = []
+    fine_recall = []
+    fine_precision = []
+    fine_f1 = []
 
     best_class_acc = 0.0 
 
@@ -143,9 +158,11 @@ def main():
         class_accs.append(val_metrics["class_acc"])
         coarse_accs.append(val_metrics["coarse_acc"])
         fine_accs.append(val_metrics["fine_acc"])
-        
+        fine_recall.append(val_metrics["fine_recall"])
+        fine_precision.append(val_metrics["fine_precision"])
+        fine_f1.append(val_metrics["fine_f1"])
         print(f"\nEpoch {epoch+1}/{EPOCHS}: Train Loss: {train_loss:.4f}, Val Loss: {val_metrics['loss']:.4f}")
-        print(f"Metrics -> Class Acc: {val_metrics['class_acc']:.4f} | Coarse Acc: {val_metrics['coarse_acc']:.4f} | Fine Acc: {val_metrics['fine_acc']:.4f}")
+        print(f"Metrics -> Class Acc: {val_metrics['class_acc']:.4f} | Coarse Acc: {val_metrics['coarse_acc']:.4f} | Fine Acc: {val_metrics['fine_acc']:.4f}, Fine Recall: {val_metrics['fine_recall']:.4f} | Fine Precision: {val_metrics['fine_precision']:.4f} | Fine F1: {val_metrics['fine_f1']:.4f}")
 
         with open(METRICS_FILE, "a", newline="") as f:
             writer = csv.writer(f)
@@ -156,6 +173,9 @@ def main():
                 val_metrics["class_acc"],
                 val_metrics["coarse_acc"],
                 val_metrics["fine_acc"],
+                val_metrics["fine_recall"],
+                val_metrics["fine_precision"],
+                val_metrics["fine_f1"]
             ])
 
         #based on final class accuracy 
@@ -199,6 +219,9 @@ def main():
             test_metrics["class_acc"],
             test_metrics["coarse_acc"],
             test_metrics["fine_acc"],
+            test_metrics["fine_recall"],
+            test_metrics["fine_precision"],
+            test_metrics["fine_f1"]
         ])
 
     print("\n--- TEST ---")
