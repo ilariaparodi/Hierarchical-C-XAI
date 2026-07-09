@@ -9,7 +9,7 @@ from dataset.hierarchicalDataset import HierarchicalDataset
 BASE_DIR = '/content/Hierarchical-C-XAI'
 
 def get_dataloaders(batch_size=32, num_workers=2):
-
+    # crea e restituisce data loader per training, validation e test applicando le trasformazion
     # define transformations for the images
     train_transform = transforms.Compose([
         transforms.Resize((224,224)),
@@ -25,8 +25,8 @@ def get_dataloaders(batch_size=32, num_workers=2):
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.47092777490615845, 0.4650551378726959, 0.40201520919799805], 
-            std=[0.2746632993221283, 0.25649791955947876, 0.28231367468833923]
+            mean= [0.4675564467906952, 0.4438961446285248, 0.3896581530570984],
+            std= [0.2790640592575073, 0.27465948462486267, 0.29026371240615845]
         )
     ])
 
