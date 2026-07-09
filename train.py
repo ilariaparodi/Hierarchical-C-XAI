@@ -27,13 +27,13 @@ def topk_correct(logits, targets, k):
 
 
 def compute_loss(model, batch, device):
-    images, coarse, fine, concepts = batch
+    images, final_class, coarse_concept, fine_concepts = batch
     images = images.to(device)
-    fine = fine.to(device)
+    final_class = final_class.to(device)
 
     logits = model(images)
-    loss = classification_loss(logits, fine)
-    return loss, logits, fine
+    loss = classification_loss(logits, final_class)
+    return loss, logits, final_class
 
 
 def train_one_epoch(model, loader, optimizer, device):
