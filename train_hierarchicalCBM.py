@@ -41,9 +41,9 @@ def compute_loss(model, batch, device):
         coarse_targets=coarse_concept,
         fine_predictions=outputs["fine"],
         fine_targets=fine_concepts,
-        lambda_class=1.0,    # final class prediction
-        lambda_coarse=0.5,   # coarse concepts
-        lambda_fine=0.1      # fine concepts
+        lambda_class=0.5,    # final class prediction
+        lambda_coarse=0.3,   # coarse concepts
+        lambda_fine=0.2      # fine concepts
     )
 
     loss = losses["total"]
