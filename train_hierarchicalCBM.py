@@ -4,6 +4,9 @@ import torch
 from dataloaders import train_loader, val_loader, test_loader
 from models.resnet_hierarchicalCBM import build_resnet50_hierarchical
 from losses import total_loss
+from metrics import accuracy, coarse_concept_accuracy, fine_concept_accuracy
+import csv
+import os
 
 NUM_CLASSES = 4
 NUM_COARSE = 11
@@ -13,6 +16,12 @@ EPOCHS = 20
 LR = 1e-3
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+SAVE_DIR = "/content/drive/MyDrive/CBM_results"
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+METRICS_FILE = os.path.join(SAVE_DIR, "hierarchical_metrics.csv")
+BEST_MODEL = os.path.join(SAVE_DIR, "hierarchical_cbm_best.pt")
 
 def compute_loss(model, batch, device):
     # unpack the batch
@@ -38,7 +47,7 @@ def compute_loss(model, batch, device):
     )
 
     loss = losses["total"]
-    return loss, losses, outputs, final_class
+    return loss, losses, outputs, (final_class, coarse_concept, fine_concepts)
 
 def train_one_epoch(model, loader, optimizer, device):
 
@@ -68,46 +77,52 @@ def evaluate(model, loader, device):
     
     model.eval()
     total = 0
-    running_loss = 0
-    correct_class = 0
-    correct_coarse = 0
-    correct_fine = 0
+    class_acc = 0.0
+    coarse_acc = 0.0
+    fine_acc = 0.0
+    running_loss = 0.0
     
     # iterate over the validation data
     for batch in loader:
         loss, losses, outputs, targets = compute_loss(model, batch, device)
         final_class_targets, coarse_targets, fine_targets = targets
         
-        #final Class Accuracy (Argmax)
-        pred_class = outputs["class"].argmax(dim=1)
-        correct_class += (pred_class == final_class_targets).sum().item()
-        
-        #coarse Concept Accuracy (Argmax because of CrossEntropyLoss)
-        pred_coarse = outputs["coarse"].argmax(dim=1)
-        correct_coarse += (pred_coarse == coarse_targets).sum().item()
-        
-        #fine Concept Accuracy (Sigmoid + Threshold because of BCEWithLogitsLoss)
-        pred_fine = (torch.sigmoid(outputs["fine"]) > 0.5).float()
-        # Using .mean() gets the average element-wise match per batch, then we multiply by batch size
-        correct_fine += (pred_fine == fine_targets).float().mean().item() * targets[0].size(0)
+        bs = batch[0].size(0)
 
-        running_loss += loss.item() * targets[0].size(0)
-        total += targets[0].size(0)
+        # compute accuracies
+        class_acc += accuracy(outputs["class"], final_class_targets) * bs
+        coarse_acc += coarse_concept_accuracy(outputs["coarse"], coarse_targets) * bs
+        fine_acc += fine_concept_accuracy(outputs["fine"], fine_targets) * bs
+
+        running_loss += loss.item() * bs
+        total += bs
 
     return {
-        "loss": running_loss / max(1, total),
-        "class_acc": correct_class / max(1, total),
-        "coarse_acc": correct_coarse / max(1, total),
-        "fine_acc": correct_fine / max(1, total)
+        "loss": running_loss / total,
+        "class_acc": class_acc / total,
+        "coarse_acc": coarse_acc / total,
+        "fine_acc": fine_acc / total,
     }
 
 def main():
-    print(f"Device: {DEVICE}")
+    print(f"Training Hierarchical Concept Bottleneck Model on {DEVICE}")
+
+    with open(METRICS_FILE, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "epoch",
+            "train_loss",
+            "val_loss",
+            "class_acc",
+            "coarse_acc",
+            "fine_acc",
+        ])
+
     # build the model and optimizer
     model = build_resnet50_hierarchical(num_classes=NUM_CLASSES, num_fine=NUM_FINE, num_coarse=NUM_COARSE, pretrained=True, freeze_backbone=False).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
-    best_accuracy = -0.01   
+    best_class_acc = 0.0 
 
     # train the model for a number of epochs
     for epoch in range(EPOCHS):
@@ -117,14 +132,36 @@ def main():
         print(f"\nEpoch {epoch+1}/{EPOCHS}: Train Loss: {train_loss:.4f}, Val Loss: {val_metrics['loss']:.4f}")
         print(f"Metrics -> Class Acc: {val_metrics['class_acc']:.4f} | Coarse Acc: {val_metrics['coarse_acc']:.4f} | Fine Acc: {val_metrics['fine_acc']:.4f}")
 
+        with open(METRICS_FILE, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                epoch + 1,
+                train_loss,
+                val_metrics["loss"],
+                val_metrics["class_acc"],
+                val_metrics["coarse_acc"],
+                val_metrics["fine_acc"],
+            ])
+
         #based on final class accuracy 
-        if val_metrics["class_acc"] > best_accuracy:
-            best_accuracy = val_metrics["class_acc"]
-            torch.save(model.state_dict(), "hierarchical_cbm_best.pt")
-            print(f"*** New best model saved with Class Accuracy: {best_accuracy:.4f} ***")
+        if val_metrics["class_acc"] > best_class_acc:
+            best_class_acc = val_metrics["class_acc"]
+            torch.save(model.state_dict(), BEST_MODEL)
+            print(f"*** New best model saved with Class Accuracy: {best_class_acc:.4f} ***")
         
-    model.load_state_dict(torch.load("hierarchical_cbm_best.pt", map_location=DEVICE))
+    model.load_state_dict(torch.load(BEST_MODEL, map_location=DEVICE))
     test_metrics = evaluate(model, test_loader, DEVICE)
+
+    with open(METRICS_FILE, "a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "TEST",
+            "",
+            test_metrics["loss"],
+            test_metrics["class_acc"],
+            test_metrics["coarse_acc"],
+            test_metrics["fine_acc"],
+        ])
 
     print("\n--- TEST ---")
     print(test_metrics)
