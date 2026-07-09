@@ -2,7 +2,7 @@
 # with a ResNet50 backbone
 import torch
 import matplotlib.pyplot as plt
-from dataloaders import train_loader, val_loader, test_loader
+from dataset.dataloaders import train_loader, val_loader, test_loader
 from models.resnet_hierarchicalCBM import build_resnet50_hierarchical
 from losses import total_loss
 from metrics import accuracy, coarse_concept_accuracy, fine_concept_accuracy

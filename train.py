@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
-from dataloaders import train_loader, val_loader, test_loader
+from dataset.dataloaders import train_loader, val_loader, test_loader
 from models.resnet_baseline import build_resnet50_baseline
 from losses import classification_loss
 from metrics import accuracy
