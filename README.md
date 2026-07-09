@@ -51,9 +51,9 @@ repo_name = repo_url.split('/')[-1].replace('.git', '')
 ## Training
 The training scripts automatically save:
 
-- the best model checkpoint (`.pt`);
-- the training and validation metrics (`.csv`);
-- the loss plot (baseline model).
+- the best model checkpoint
+- the training and validation metrics
+- the loss plot
 
 When using Google Colab, the results are stored in:
 
