@@ -7,7 +7,7 @@ from losses import classification_loss
 
 NUM_CLASSES = 4
 EPOCHS = 20
-LR = 1e-3
+LR = 1e-4
 TOP_K = 2
 PRETRAINED = True
 FREEZE_BACKBONE = False
@@ -122,7 +122,7 @@ def main():
     plt.ylabel("loss")
     plt.legend()
     plt.savefig("baseline_loss.png", dpi=150, bbox_inches="tight")
-    plt.show()
+    plt.close()
 
     model.load_state_dict(torch.load("resnet50_baseline_best.pt", map_location=DEVICE))
     test_metrics = evaluate(model, test_loader, DEVICE)
