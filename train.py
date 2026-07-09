@@ -1,4 +1,5 @@
 import torch
+import matplotlib.pyplot as plt
 
 from dataloaders import train_loader, val_loader, test_loader
 from models.resnet_baseline import build_resnet50_baseline
@@ -89,10 +90,17 @@ def main():
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(params, lr=LR)
 
+
+    train_losses = []
+    val_losses = []
+
     best_val_top1 = 0.0
     for epoch in range(1, EPOCHS + 1):
         train_loss = train_one_epoch(model, train_loader, optimizer, DEVICE)
         val_metrics = evaluate(model, val_loader, DEVICE)
+
+        train_losses.append(train_loss)
+        val_losses.append(val_metrics["loss"])
 
         print(
             f"Epoch {epoch:02d} | "
@@ -105,6 +113,16 @@ def main():
         if val_metrics["top1"] > best_val_top1:
             best_val_top1 = val_metrics["top1"]
             torch.save(model.state_dict(), "resnet50_baseline_best.pt")
+
+    plt.figure()
+    plt.plot(range(1, EPOCHS + 1), train_losses, label="train")
+    plt.plot(range(1, EPOCHS + 1), val_losses, label="val")
+    plt.title("model loss")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.legend()
+    plt.savefig("baseline_loss.png", dpi=150, bbox_inches="tight")
+    plt.show()
 
     model.load_state_dict(torch.load("resnet50_baseline_best.pt", map_location=DEVICE))
     test_metrics = evaluate(model, test_loader, DEVICE)
