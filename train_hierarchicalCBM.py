@@ -1,6 +1,7 @@
 # train a hierarchical concept bottleneck model
 # with a ResNet50 backbone
 import torch
+import matplotlib.pyplot as plt
 from dataloaders import train_loader, val_loader, test_loader
 from models.resnet_hierarchicalCBM import build_resnet50_hierarchical
 from losses import total_loss
@@ -13,7 +14,7 @@ NUM_COARSE = 11
 NUM_FINE = 110
 
 EPOCHS = 20
-LR = 1e-3
+LR = 1e-4
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -22,6 +23,8 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 
 METRICS_FILE = os.path.join(SAVE_DIR, "hierarchical_metrics.csv")
 BEST_MODEL = os.path.join(SAVE_DIR, "hierarchical_cbm_best.pt")
+LOSS_PLOT = os.path.join(SAVE_DIR, "hierarchical_loss.png")
+ACC_PLOT = os.path.join(SAVE_DIR, "hierarchical_accuracy.png")
 
 def compute_loss(model, batch, device):
     # unpack the batch
@@ -72,7 +75,6 @@ def train_one_epoch(model, loader, optimizer, device):
     return running_loss / n
 
 @torch.no_grad()
-
 def evaluate(model, loader, device):
     
     model.eval()
@@ -105,7 +107,7 @@ def evaluate(model, loader, device):
     }
 
 def main():
-    print(f"Training Hierarchical Concept Bottleneck Model on {DEVICE}")
+    print(f"Training Hierarchical CBM on {DEVICE}")
 
     with open(METRICS_FILE, "w", newline="") as f:
         writer = csv.writer(f)
@@ -122,12 +124,25 @@ def main():
     model = build_resnet50_hierarchical(num_classes=NUM_CLASSES, num_fine=NUM_FINE, num_coarse=NUM_COARSE, pretrained=True, freeze_backbone=False).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
+    # lists to track metrics across epochs for plotting
+    train_losses = []
+    val_losses = []
+    class_accs = []
+    coarse_accs = []
+    fine_accs = []
+
     best_class_acc = 0.0 
 
     # train the model for a number of epochs
     for epoch in range(EPOCHS):
         train_loss = train_one_epoch(model, train_loader, optimizer, DEVICE)
         val_metrics = evaluate(model, val_loader, DEVICE)
+
+        train_losses.append(train_loss)
+        val_losses.append(val_metrics["loss"])
+        class_accs.append(val_metrics["class_acc"])
+        coarse_accs.append(val_metrics["coarse_acc"])
+        fine_accs.append(val_metrics["fine_acc"])
         
         print(f"\nEpoch {epoch+1}/{EPOCHS}: Train Loss: {train_loss:.4f}, Val Loss: {val_metrics['loss']:.4f}")
         print(f"Metrics -> Class Acc: {val_metrics['class_acc']:.4f} | Coarse Acc: {val_metrics['coarse_acc']:.4f} | Fine Acc: {val_metrics['fine_acc']:.4f}")
@@ -148,7 +163,30 @@ def main():
             best_class_acc = val_metrics["class_acc"]
             torch.save(model.state_dict(), BEST_MODEL)
             print(f"*** New best model saved with Class Accuracy: {best_class_acc:.4f} ***")
-        
+
+    # plot training and validation loss
+    plt.figure()
+    plt.plot(range(1, EPOCHS + 1), train_losses, label="train")
+    plt.plot(range(1, EPOCHS + 1), val_losses, label="val")
+    plt.title("model loss")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.legend()
+    plt.savefig(LOSS_PLOT, dpi=150, bbox_inches="tight")
+    plt.close()
+
+    # plot validation accuracies (class / coarse / fine)
+    plt.figure()
+    plt.plot(range(1, EPOCHS + 1), class_accs, label="class")
+    plt.plot(range(1, EPOCHS + 1), coarse_accs, label="coarse")
+    plt.plot(range(1, EPOCHS + 1), fine_accs, label="fine")
+    plt.title("validation accuracy")
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+    plt.legend()
+    plt.savefig(ACC_PLOT, dpi=150, bbox_inches="tight")
+    plt.close()
+
     model.load_state_dict(torch.load(BEST_MODEL, map_location=DEVICE))
     test_metrics = evaluate(model, test_loader, DEVICE)
 
