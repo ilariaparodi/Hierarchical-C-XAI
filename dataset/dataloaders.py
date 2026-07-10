@@ -11,22 +11,27 @@ BASE_DIR = '/content/Hierarchical-C-XAI'
 def get_dataloaders(batch_size=32, num_workers=2):
     # crea e restituisce data loader per training, validation e test applicando le trasformazion
     # define transformations for the images
+    
     train_transform = transforms.Compose([
-        transforms.Resize((224,224)),
-        transforms.RandomHorizontalFlip(), # basic data augmentation to avoid overfitting 
+        transforms.Resize((256, 256)),
+        transforms.RandomCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(
-            mean= [0.4675564467906952, 0.4438961446285248, 0.3896581530570984],
-            std= [0.2790640592575073, 0.27465948462486267, 0.29026371240615845]
+            mean=[0.4675564467906952, 0.4438961446285248, 0.3896581530570984],
+            std=[0.2790640592575073, 0.27465948462486267, 0.29026371240615845]
         )
     ])
 
     val_test_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((256, 256)),
+        transforms.CenterCrop(224),      # deterministico: sempre il centro, niente casualità
         transforms.ToTensor(),
         transforms.Normalize(
-            mean= [0.4675564467906952, 0.4438961446285248, 0.3896581530570984],
-            std= [0.2790640592575073, 0.27465948462486267, 0.29026371240615845]
+            mean=[0.4675564467906952, 0.4438961446285248, 0.3896581530570984],
+            std=[0.2790640592575073, 0.27465948462486267, 0.29026371240615845]
         )
     ])
 
