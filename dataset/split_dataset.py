@@ -7,7 +7,7 @@ import os
 random.seed(42)
 
 BASE_DIR = '/content/Hierarchical-C-XAI'
-ANNOTATIONS = os.path.join(BASE_DIR, "annotations.json")
+ANNOTATIONS = os.path.join(BASE_DIR, "dataset_creation/annotations.json")
 OUTPUT_DIR = os.path.join(BASE_DIR, "dataset")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
