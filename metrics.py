@@ -6,18 +6,20 @@ def accuracy(logits, labels):
     predictions = logits.argmax(dim=1)
     return (predictions == labels).float().mean().item()
 
-# Fine Concept Accuracy: measures how well the model predicts the correct fine concept labels in a multi-label classification setting
-def fine_concept_accuracy(logits, targets, threshold=0.5):
-    predictions = (torch.sigmoid(logits) >= threshold).float()
-    return (predictions == targets).float().mean().item()
-
 # Coarse Concept Accuracy: measures how well the model predicts the correct coarse concept labels in a multi-class classification setting
 def coarse_concept_accuracy(logits, labels):
     predictions = logits.argmax(dim=1)
     return (predictions == labels).float().mean().item()
 
+# Fine Concept Accuracy: measures how well the model predicts the correct fine concept labels in a multi-label classification setting
+def fine_concept_accuracy(logits, targets, threshold=0.5):
+    predictions = (torch.sigmoid(logits) >= threshold).float()
+    return (predictions == targets).float().mean().item()
+
+# Macro Metrics: measures the average performance across all classes for multi-label classification tasks
+
 # Fine Concept Recall: measures the proportion of true positive fine concept predictions out of all actual positive fine concept labels
-def fine_concept_recall(logits, targets, threshold=0.5):
+def fine_concept_recall_macro(logits, targets, threshold=0.5):
     predictions = (torch.sigmoid(logits) >= threshold).float()
     true_positives = ((predictions == 1) & (targets == 1)).float().sum(dim=0)
     actual_positives = targets.sum(dim=0)
@@ -25,7 +27,7 @@ def fine_concept_recall(logits, targets, threshold=0.5):
     return recall.mean().item()
 
 # Fine Concept Precision: measures the proportion of true positive fine concept predictions out of all predicted positive fine concept labels
-def fine_concept_precision(logits, targets, threshold=0.5):
+def fine_concept_precision_macro(logits, targets, threshold=0.5):
     predictions = (torch.sigmoid(logits) >= threshold).float()
     true_positives = ((predictions == 1) & (targets == 1)).float().sum(dim=0)
     predicted_positives = predictions.sum(dim=0)
@@ -33,27 +35,41 @@ def fine_concept_precision(logits, targets, threshold=0.5):
     return precision.mean().item()
 
 # Fine Concept F1: measures the harmonic mean of precision and recall for fine concept predictions
-def fine_concept_f1(logits, targets, threshold=0.5):
-    recall = fine_concept_recall(logits, targets, threshold)
-    precision = fine_concept_precision(logits, targets, threshold)
-    f1 = 2 * (precision * recall) / (precision + recall + 1e-8)
-    return f1
+def fine_concept_f1_macro(logits, targets, threshold=0.5):
+    predictions = (torch.sigmoid(logits) >= threshold).float()
+    tp = ((predictions == 1) & (targets == 1)).float().sum(dim=0)
+    fp = ((predictions == 1) & (targets == 0)).float().sum(dim=0)
+    fn = ((predictions == 0) & (targets == 1)).float().sum(dim=0)
+    precision = tp / (tp + fp + 1e-8)
+    recall = tp / (tp + fn + 1e-8)
+    f1 = 2 * precision * recall / (precision + recall + 1e-8)
+    return f1.mean().item()
 
-# Semantic Error Distance: measures the semantic distance between predicted and true labels in a hierarchical classification setting
-def semantic_error_distance(predicted_coarse, predicted_class, true_coarse, true_class):
+# Micro Metrics: measures the overall performance across all classes for multi-label classification tasks
 
-    total = 0
-    n = len(true_class)
+# Micro Precision: measures the proportion of true positive fine concept predictions out of all predicted positive fine concept labels
+def fine_concept_precision_micro(logits, targets, threshold=0.5):
+    predictions = (torch.sigmoid(logits) >= threshold).float()
+    tp = ((predictions == 1) & (targets == 1)).sum().float()
+    fp = ((predictions == 1) & (targets == 0)).sum().float()
+    precision = tp / (tp + fp + 1e-8)
+    return precision.item()
 
-    for pc, pf, tc, tf in zip(predicted_coarse, predicted_class, true_coarse, true_class):
+# Micro Recall: measures the proportion of true positive fine concept predictions out of all actual positive fine concept labels
+def fine_concept_recall_micro(logits, targets, threshold=0.5):
+    predictions = (torch.sigmoid(logits) >= threshold).float()
+    tp = ((predictions == 1) & (targets == 1)).sum().float()
+    fn = ((predictions == 0) & (targets == 1)).sum().float()
+    recall = tp / (tp + fn + 1e-8)
+    return recall.item()
 
-        if pf == tf:
-            total += 0
-
-        elif pc == tc:
-            total += 1
-
-        else:
-            total += 2
-
-    return total / n
+# Micro F1: measures the harmonic mean of precision and recall for fine concept predictions
+def fine_concept_f1_micro(logits, targets, threshold=0.5):
+    predictions = (torch.sigmoid(logits) >= threshold).float()
+    tp = ((predictions == 1) & (targets == 1)).sum().float()
+    fp = ((predictions == 1) & (targets == 0)).sum().float()
+    fn = ((predictions == 0) & (targets == 1)).sum().float()
+    precision = tp / (tp + fp + 1e-8)
+    recall = tp / (tp + fn + 1e-8)
+    f1 = 2 * precision * recall / (precision + recall + 1e-8)
+    return f1.item()

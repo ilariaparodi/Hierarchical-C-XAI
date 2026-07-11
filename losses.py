@@ -8,21 +8,23 @@ def classification_loss(predictions, labels):
     return F.cross_entropy(predictions, labels)
 
 
-def concept_loss(coarse_predictions, coarse_targets, fine_predictions, fine_targets, lambda_coarse=0.3, lambda_fine=0.2):
+def concept_loss(coarse_predictions, coarse_targets, fine_predictions, fine_targets, lambda_coarse, lambda_fine):
     '''
     Hierarchical concept loss
     L_concept = λ_coarse * CE(coarse concepts) + λ_fine * BCE(fine concepts)
     '''
     coarse_loss = F.cross_entropy(coarse_predictions, coarse_targets )
+    
+    weight = torch.full((fine_predictions.size(1),), 10.0, device=fine_predictions.device)
 
-    fine_loss = F.binary_cross_entropy_with_logits(fine_predictions, fine_targets.float())
+    fine_loss = F.binary_cross_entropy_with_logits(fine_predictions, fine_targets.float(), pos_weight=weight)
     
     weighted_concept_loss = (lambda_coarse * coarse_loss) + (lambda_fine * fine_loss)
 
     return weighted_concept_loss, coarse_loss, fine_loss
 
 def total_loss(class_predictions, class_targets, coarse_predictions, coarse_targets, fine_predictions, fine_targets,
-                lambda_class=0.5, lambda_coarse=0.3, lambda_fine=0.2):
+                lambda_class, lambda_coarse, lambda_fine):
     '''
     Complete training loss
     L = lambda_class * L_classification + lambda_coarse * L_coarse_concept + lambda_fine * L_fine_concept
