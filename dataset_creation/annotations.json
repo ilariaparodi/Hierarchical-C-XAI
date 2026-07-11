@@ -26141,7 +26141,8 @@
         "coarse_concept": "fruit",
         "coarse_concept_id": 9,
         "active_fine_concepts": [
-            "Fruit"
+            "Fruit",
+            "outer skin"
         ],
         "fine_concept_vector": [
             0,
@@ -26210,7 +26211,7 @@
             0,
             0,
             0,
-            0,
+            1,
             0,
             0,
             0,
