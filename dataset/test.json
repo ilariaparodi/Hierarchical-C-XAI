@@ -3551,12 +3551,18 @@
         "coarse_concept": "fruit",
         "coarse_concept_id": 9,
         "active_fine_concepts": [
+<<<<<<< HEAD
             "elongated shape",
             "fruit contour",
             "glossy surface",
             "natural color pattern",
             "peel",
             "stem attachment"
+=======
+            "Fruit",
+            "outer skin"
+
+>>>>>>> d9f723a00056e997ffb7879ea0760e2bce055a56
         ],
         "fine_concept_vector": [
             0,
@@ -3630,7 +3636,10 @@
             0,
             0,
             1,
+<<<<<<< HEAD
             0,
+=======
+>>>>>>> d9f723a00056e997ffb7879ea0760e2bce055a56
             0,
             0,
             0,
