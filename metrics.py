@@ -38,22 +38,3 @@ def fine_concept_f1(logits, targets, threshold=0.5):
     precision = fine_concept_precision(logits, targets, threshold)
     f1 = 2 * (precision * recall) / (precision + recall + 1e-8)
     return f1
-
-# Semantic Error Distance: measures the semantic distance between predicted and true labels in a hierarchical classification setting
-def semantic_error_distance(predicted_coarse, predicted_class, true_coarse, true_class):
-
-    total = 0
-    n = len(true_class)
-
-    for pc, pf, tc, tf in zip(predicted_coarse, predicted_class, true_coarse, true_class):
-
-        if pf == tf:
-            total += 0
-
-        elif pc == tc:
-            total += 1
-
-        else:
-            total += 2
-
-    return total / n
