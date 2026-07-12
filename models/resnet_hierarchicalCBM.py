@@ -10,10 +10,12 @@ class ResNetHierarchical(nn.Module):
         # load weights
         weights = ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
         self.backbone = models.resnet50(weights=weights)
+
         # freeze backbone if specified
         if freeze_backbone:
             for param in self.backbone.parameters():
                 param.requires_grad = False
+                
         # Remove the original fully connected layer to get raw features (dim: 2048)
         in_features = self.backbone.fc.in_features
         self.backbone.fc = nn.Identity()

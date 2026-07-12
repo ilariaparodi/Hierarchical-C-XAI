@@ -1,4 +1,3 @@
-# split the dataset into train, validation, and test sets
 import random
 from collections import Counter, defaultdict
 import json

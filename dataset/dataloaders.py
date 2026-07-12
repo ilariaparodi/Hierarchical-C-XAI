@@ -9,8 +9,6 @@ from dataset.hierarchicalDataset import HierarchicalDataset
 BASE_DIR = '/content/Hierarchical-C-XAI'
 
 def get_dataloaders(batch_size=32, num_workers=2):
-    # crea e restituisce data loader per training, validation e test applicando le trasformazion
-    # define transformations for the images
     
     train_transform = transforms.Compose([
         transforms.Resize((256, 256)),
@@ -27,7 +25,7 @@ def get_dataloaders(batch_size=32, num_workers=2):
 
     val_test_transform = transforms.Compose([
         transforms.Resize((256, 256)),
-        transforms.CenterCrop(224),      # deterministico: sempre il centro, niente casualità
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(
             mean=[0.4675564467906952, 0.4438961446285248, 0.3896581530570984],
@@ -35,7 +33,6 @@ def get_dataloaders(batch_size=32, num_workers=2):
         )
     ])
 
-# create datasets f
     train_dataset = HierarchicalDataset(
             annotation_file=os.path.join(BASE_DIR, "dataset", "train.json"),
             image_root=os.path.join(BASE_DIR, "image_subset"),
