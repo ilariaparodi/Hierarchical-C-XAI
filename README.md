@@ -113,5 +113,6 @@ The `single_explanation.py` script allows to select any specific image from the 
 To test the script on Google Colab with a custom test image, adjust the IMAGE_PATH string inside the file and run:
 
 ```python
-!python single_explanation.py
+%matplotlib inline
+%run single_explanation.py
 ```
