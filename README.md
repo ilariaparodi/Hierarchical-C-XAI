@@ -64,7 +64,7 @@ repo_name = repo_url.split('/')[-1].replace('.git', '')
 - `dataset/stats.py`: utility script to compute dataset statistics for normalization.
 - `dataset/train.json`, `dataset/val.json`, `dataset/test.json`: configuration files containing the data splits with respective image paths and associated annotations.
 
-- `models/resnet_baseline.py`: Standard ResNet50 architecture used as the baseline comparison.
+- `models/resnet_baseline.py`: standard ResNet50 architecture used as the baseline comparison.
 - `models/resnet_hierarchicalCBM.py`: our proposed architecture.
   
 - `train.py`: script to train the standard baseline model.
