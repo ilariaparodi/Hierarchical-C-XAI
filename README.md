@@ -20,6 +20,7 @@ The model is compared against a standard ResNet50 baseline.
 import os
 repo_url = "https://github.com/ilariaparodi/Hierarchical-C-XAI.git"
 repo_name = repo_url.split('/')[-1].replace('.git', '')
+!git clone {repo_url}
 %cd Hierarchical-C-XAI
 ```
 
